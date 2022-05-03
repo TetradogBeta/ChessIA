@@ -30,7 +30,7 @@ namespace Chess.UI.Wpf
 
         public Point LocationPizaEnCelda { get; set; } = new Point((DefaultLadoCelda - DefaultLadoPieza) / 2, (DefaultLadoCelda - DefaultLadoPieza) / 2);
 
-        public Point CellSelected { get; set; }
+        public List<Point> CellsSelected { get; private set; } = new List<Point>();
 
 
         public void Start() => Reset();
@@ -134,7 +134,7 @@ namespace Chess.UI.Wpf
                         collage.Add(pieza.Render(SizePieza), x * SizeCelda.Width + LocationPizaEnCelda.X, yAux * SizeCelda.Height + LocationPizaEnCelda.Y, CAPAPIEZA);
                     }
                 }
-            if(!Equals(CellSelected, default))
+            if(CellsSelected.Count>0)
             {
                 cellSelected = new Bitmap(SizeCelda.Width, SizeCelda.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                 cellSelected.TrataBytes((data) =>
@@ -147,8 +147,11 @@ namespace Chess.UI.Wpf
                         data[i + B] = (byte)ColorCeldaSeleccionada.B;
                     }
                 });
-                collage.Remove( CellSelected.X * SizeCelda.Width, (LADO - 1 - CellSelected.Y) * SizeCelda.Height, CAPACELDA);
-                collage.Add(cellSelected, CellSelected.X * SizeCelda.Width, (LADO-1-CellSelected.Y) * SizeCelda.Height, CAPACELDA);
+                foreach (Point posCellSelected in CellsSelected)
+                {
+                    collage.Remove(posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPACELDA);
+                    collage.Add(cellSelected, posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPACELDA);
+                }
             }
             result= collage.CrearCollage();
             if(!renderLado1)

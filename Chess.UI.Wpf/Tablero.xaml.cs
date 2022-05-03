@@ -21,6 +21,7 @@ namespace Chess.UI.Wpf
     /// </summary>
     public partial class Tablero : UserControl
     {
+        public event EventHandler Clicked;
         public Tablero()
         {
             InitializeComponent();
@@ -37,8 +38,19 @@ namespace Chess.UI.Wpf
 
         private void img_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            TableroData.CellSelected = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y);
+            System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y);
+            if (TableroData.CellsSelected.Any(l => l.Equals(location))){
+
+                TableroData.CellsSelected.Remove(location);
+            }
+            else
+            {
+                TableroData.CellsSelected.Add(location);
+            }
             Refresh();
+
+            if(Clicked!=null)
+                Clicked(this, new EventArgs());
         }
     }
 }
