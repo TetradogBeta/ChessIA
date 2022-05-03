@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32407.343
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessIA.Wpf", "ChessIA.Wpf\ChessIA.Wpf.csproj", "{B9435201-C8F3-4F33-B789-D519AD8F020B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chess.UI.Wpf", "Chess.UI.Wpf\Chess.UI.Wpf.csproj", "{D5A83A12-506A-4F56-AEAF-8DE5E9028198}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B9435201-C8F3-4F33-B789-D519AD8F020B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9435201-C8F3-4F33-B789-D519AD8F020B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9435201-C8F3-4F33-B789-D519AD8F020B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9435201-C8F3-4F33-B789-D519AD8F020B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5A83A12-506A-4F56-AEAF-8DE5E9028198}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5A83A12-506A-4F56-AEAF-8DE5E9028198}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5A83A12-506A-4F56-AEAF-8DE5E9028198}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5A83A12-506A-4F56-AEAF-8DE5E9028198}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {55B60CA1-F194-47ED-8EAD-234086BF395C}
+	EndGlobalSection
+EndGlobal
