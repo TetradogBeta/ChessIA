@@ -26,6 +26,7 @@ namespace Chess.UI.Wpf
             InitializeComponent();
             tablero.TableroData.Move(new System.Drawing.Point(0,1),new System.Drawing.Point(0,2));
             tablero.TableroData.CellsSelected2.Add(new System.Drawing.Point(0,3));
+            tablero.DoubleSelection = true;
             tablero.Refresh();
 
         }
