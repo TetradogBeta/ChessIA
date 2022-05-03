@@ -6,5 +6,5 @@
              xmlns:local="clr-namespace:Chess.UI.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Image x:Name="img" MouseLeftButtonUp="img_MouseLeftButtonUp"/>
+    <Image x:Name="img" MouseLeftButtonUp="img_MouseLeftButtonUp" MouseRightButtonUp="img_MouseRightButtonUp"/>
 </UserControl>

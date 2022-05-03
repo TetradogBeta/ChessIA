@@ -39,17 +39,35 @@ namespace Chess.UI.Wpf
         private void img_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y);
-            if (TableroData.CellsSelected.Any(l => l.Equals(location))){
+            if (TableroData.CellsSelected1.Any(l => l.Equals(location))){
 
-                TableroData.CellsSelected.Remove(location);
+                TableroData.CellsSelected1.Remove(location);
             }
             else
             {
-                TableroData.CellsSelected.Add(location);
+                TableroData.CellsSelected1.Add(location);
             }
             Refresh();
 
             if(Clicked!=null)
+                Clicked(this, new EventArgs());
+        }
+
+        private void img_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y);
+            if (TableroData.CellsSelected2.Any(l => l.Equals(location)))
+            {
+
+                TableroData.CellsSelected2.Remove(location);
+            }
+            else
+            {
+                TableroData.CellsSelected2.Add(location);
+            }
+            Refresh();
+
+            if (Clicked != null)
                 Clicked(this, new EventArgs());
         }
     }

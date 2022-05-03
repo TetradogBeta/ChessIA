@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Gabriel.Cat.S.Extension;
+using Gabriel.Cat.S.Utilitats;
 
 namespace Chess.UI.Wpf
 {
@@ -17,22 +18,22 @@ namespace Chess.UI.Wpf
 
         public event EventHandler<PiezaEventArgs>? PiezaCapturada;
         public Pieza?[,] Piezas { get;private set; } = new Pieza?[LADO,LADO];
-        public Color Color1Pieza { get; set; }= Color.Coral;
+        public Color Color1Pieza { get; set; }= Color.Sienna;
         public Color Color2Pieza { get; set; } = Color.DarkViolet;
 
         public Color Color1Celda { get; set; } = Color.LightGray;
         public Color Color2Celda { get; set; } = Color.LightCoral;
 
-        public Color ColorCeldaSeleccionada { get; set; } = Color.LightGreen;
-
+        public Color ColorCeldaSeleccionada1 { get; set; } = Color.Green;
+        public Color ColorCeldaSeleccionada2 { get; set; } = Color.Blue;
         public Size SizePieza { get; set; } = new Size(DefaultLadoPieza, DefaultLadoPieza);
         public Size SizeCelda { get; set; } = new Size(DefaultLadoCelda, DefaultLadoCelda);
 
         public Point LocationPizaEnCelda { get; set; } = new Point((DefaultLadoCelda - DefaultLadoPieza) / 2, (DefaultLadoCelda - DefaultLadoPieza) / 2);
 
-        public List<Point> CellsSelected { get; private set; } = new List<Point>();
+        public List<Point> CellsSelected1 { get; private set; } = new List<Point>();
 
-
+        public List<Point> CellsSelected2 { get; private set; } = new List<Point>();
         public void Start() => Reset();
         public void Reset()
         {
@@ -94,10 +95,10 @@ namespace Chess.UI.Wpf
         public Bitmap Render(bool renderLado1=true)
         {
             const int A=0,R=A+1,G=R+1,B=G+1;
-            const int CAPACELDA = 1, CAPAPIEZA = 0;
+            const int CAPACELDA = 2,CAPASELECTED=1, CAPAPIEZA = 0;
             Bitmap result;
             Pieza pieza;
-            Bitmap cellSelected;
+            Bitmap cellSelected1,cellSelected2;
             Bitmap cell1 = new Bitmap(SizeCelda.Width, SizeCelda.Height,System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             Bitmap cell2 = new Bitmap(SizeCelda.Width, SizeCelda.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             Collage collage = new Collage();
@@ -106,20 +107,20 @@ namespace Chess.UI.Wpf
             {
                 for(int i = 0; i < data.Length; i += 4)
                 {
-                    data[i + A] = byte.MaxValue;
-                    data[i + R] = (byte)Color1Celda.R;
-                    data[i + G] = (byte)Color1Celda.G;
-                    data[i + B] = (byte)Color1Celda.B;
+                    data[i + Pixel.A] = byte.MaxValue;
+                    data[i + Pixel.R] = (byte)Color1Celda.R;
+                    data[i + Pixel.G] = (byte)Color1Celda.G;
+                    data[i + Pixel.B] = (byte)Color1Celda.B;
                 }
             });
             cell2.TrataBytes((data) =>
             {
                 for (int i = 0; i < data.Length; i += 4)
                 {
-                    data[i + A] = byte.MaxValue;
-                    data[i + R] = (byte)Color2Celda.R;
-                    data[i + G] = (byte)Color2Celda.G;
-                    data[i + B] = (byte)Color2Celda.B;
+                    data[i + Pixel.A] = byte.MaxValue;
+                    data[i + Pixel.R] = (byte)Color2Celda.R;
+                    data[i + Pixel.G] = (byte)Color2Celda.G;
+                    data[i + Pixel.B] = (byte)Color2Celda.B;
                 }
             });
             for (int y = 0,yAux=LADO-1; y < LADO; y++,yAux--)
@@ -134,26 +135,46 @@ namespace Chess.UI.Wpf
                         collage.Add(pieza.Render(SizePieza), x * SizeCelda.Width + LocationPizaEnCelda.X, yAux * SizeCelda.Height + LocationPizaEnCelda.Y, CAPAPIEZA);
                     }
                 }
-            if(CellsSelected.Count>0)
+            if(CellsSelected1.Count>0)
             {
-                cellSelected = new Bitmap(SizeCelda.Width, SizeCelda.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                cellSelected.TrataBytes((data) =>
+                cellSelected1 = new Bitmap(SizeCelda.Width, SizeCelda.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                cellSelected1.TrataBytes((data) =>
                 {
                     for (int i = 0; i < data.Length; i += 4)
                     {
-                        data[i + A] = byte.MaxValue;
-                        data[i + R] = (byte)ColorCeldaSeleccionada.R;
-                        data[i + G] = (byte)ColorCeldaSeleccionada.G;
-                        data[i + B] = (byte)ColorCeldaSeleccionada.B;
+                        data[i + Pixel.A] = byte.MaxValue/3;
+                        data[i + Pixel.R] = (byte)ColorCeldaSeleccionada1.R;
+                        data[i + Pixel.G] = (byte)ColorCeldaSeleccionada1.G;
+                        data[i + Pixel.B] = (byte)ColorCeldaSeleccionada1.B;
                     }
                 });
-                foreach (Point posCellSelected in CellsSelected)
+                foreach (Point posCellSelected in CellsSelected1)
                 {
-                    collage.Remove(posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPACELDA);
-                    collage.Add(cellSelected, posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPACELDA);
+
+                    collage.Add(cellSelected1, posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPASELECTED);
                 }
             }
-            result= collage.CrearCollage();
+            if (CellsSelected2.Count > 0)
+            {
+                cellSelected2 = new Bitmap(SizeCelda.Width, SizeCelda.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                cellSelected2.TrataBytes((data) =>
+                {
+                    for (int i = 0; i < data.Length; i += 4)
+                    {
+                        data[i + Pixel.A] = byte.MaxValue/3;
+                        data[i + Pixel.R] = (byte)ColorCeldaSeleccionada2.R;
+                        data[i + Pixel.G] = (byte)ColorCeldaSeleccionada2.G;
+                        data[i + Pixel.B] = (byte)ColorCeldaSeleccionada2.B;
+
+                    }
+                });
+                foreach (Point posCellSelected in CellsSelected2)
+                {
+
+                    collage.Add(cellSelected2, posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPASELECTED);
+                }
+            }
+            result = collage.CrearCollage();
             if(!renderLado1)
                 result.RotateFlip(RotateFlipType.Rotate180FlipNone);//queda raro
             return result;
