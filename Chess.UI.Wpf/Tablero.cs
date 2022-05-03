@@ -9,7 +9,7 @@ using Gabriel.Cat.S.Extension;
 
 namespace Chess.UI.Wpf
 {
-    public class Tablero
+    public class TableroData
     {
         public const int LADO = 8;
         public static int DefaultLadoPieza = 100;
@@ -23,11 +23,16 @@ namespace Chess.UI.Wpf
         public Color Color1Celda { get; set; } = Color.LightGray;
         public Color Color2Celda { get; set; } = Color.LightCoral;
 
+        public Color ColorCeldaSeleccionada { get; set; } = Color.LightGreen;
 
         public Size SizePieza { get; set; } = new Size(DefaultLadoPieza, DefaultLadoPieza);
         public Size SizeCelda { get; set; } = new Size(DefaultLadoCelda, DefaultLadoCelda);
 
         public Point LocationPizaEnCelda { get; set; } = new Point((DefaultLadoCelda - DefaultLadoPieza) / 2, (DefaultLadoCelda - DefaultLadoPieza) / 2);
+
+        public Point CellSelected { get; set; }
+
+
         public void Start() => Reset();
         public void Reset()
         {
@@ -86,13 +91,13 @@ namespace Chess.UI.Wpf
             Piezas[locationInit.X, locationInit.Y] = default;
         }
 
-        public Bitmap Render()
+        public Bitmap Render(bool renderLado1=true)
         {
             const int A=0,R=A+1,G=R+1,B=G+1;
-
-            Bitmap cell;
+            const int CAPACELDA = 1, CAPAPIEZA = 0;
+            Bitmap result;
             Pieza pieza;
-
+            Bitmap cellSelected;
             Bitmap cell1 = new Bitmap(SizeCelda.Width, SizeCelda.Height,System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             Bitmap cell2 = new Bitmap(SizeCelda.Width, SizeCelda.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             Collage collage = new Collage();
@@ -122,14 +127,37 @@ namespace Chess.UI.Wpf
 
                 {
 
-                    collage.Add(x % 2 == 0 ? y % 2 == 0 ? cell2 : cell1 : y % 2 == 0 ? cell1 : cell2, x * SizeCelda.Width, y * SizeCelda.Height, 1);
+                    collage.Add(x % 2 == 0 ? y % 2 == 0 ? cell2 : cell1 : y % 2 == 0 ? cell1 : cell2, x * SizeCelda.Width, y * SizeCelda.Height, CAPACELDA);
                     pieza = Piezas[x, y];
                     if (!Equals(pieza, default))
                     {
-                        collage.Add(pieza.Render(SizePieza), x * SizeCelda.Width + LocationPizaEnCelda.X, yAux * SizeCelda.Height + LocationPizaEnCelda.Y, 0);
+                        collage.Add(pieza.Render(SizePieza), x * SizeCelda.Width + LocationPizaEnCelda.X, yAux * SizeCelda.Height + LocationPizaEnCelda.Y, CAPAPIEZA);
                     }
                 }
-            return collage.CrearCollage();
+            if(!Equals(CellSelected, default))
+            {
+                cellSelected = new Bitmap(SizeCelda.Width, SizeCelda.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                cellSelected.TrataBytes((data) =>
+                {
+                    for (int i = 0; i < data.Length; i += 4)
+                    {
+                        data[i + A] = byte.MaxValue;
+                        data[i + R] = (byte)ColorCeldaSeleccionada.R;
+                        data[i + G] = (byte)ColorCeldaSeleccionada.G;
+                        data[i + B] = (byte)ColorCeldaSeleccionada.B;
+                    }
+                });
+                collage.Remove( CellSelected.X * SizeCelda.Width, (LADO - 1 - CellSelected.Y) * SizeCelda.Height, CAPACELDA);
+                collage.Add(cellSelected, CellSelected.X * SizeCelda.Width, (LADO-1-CellSelected.Y) * SizeCelda.Height, CAPACELDA);
+            }
+            result= collage.CrearCollage();
+            if(!renderLado1)
+                result.RotateFlip(RotateFlipType.Rotate180FlipNone);//queda raro
+            return result;
+        }
+        public Point TraslatePointImageToLocation(double pointImageX,double pointImageY)
+        {
+            return new Point((int)pointImageX / SizeCelda.Width, LADO - 1 - ((int)pointImageY / SizeCelda.Height));
         }
 
 

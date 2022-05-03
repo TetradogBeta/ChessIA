@@ -23,12 +23,10 @@ namespace Chess.UI.Wpf
     {
         public MainWindow()
         {
-            Tablero tablero=new Tablero();
-
-            tablero.Start();
-            tablero.Move(new System.Drawing.Point(0,1), new System.Drawing.Point(0,2));
             InitializeComponent();
-            imgTablero.SetImage(tablero.Render());
+            tablero.TableroData.Move(new System.Drawing.Point(0,1),new System.Drawing.Point(0,2));
+            tablero.TableroData.CellSelected = new System.Drawing.Point(0, 7);
+            tablero.Refresh();
 
         }
     }
