@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Chess.UI.Wpf
+namespace Chess.UI.Core
 {
     public enum Tipo
     {

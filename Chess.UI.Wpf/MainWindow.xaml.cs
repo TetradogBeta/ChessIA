@@ -23,10 +23,16 @@ namespace Chess.UI.Wpf
     {
         public MainWindow()
         {
+            int x = 1, y = 2,xInit=1,yInit=6;
             InitializeComponent();
-            tablero.TableroData.Move(new System.Drawing.Point(0,1),new System.Drawing.Point(0,2));
-            tablero.TableroData.CellsSelected2.Add(new System.Drawing.Point(0,3));
+            tablero.TableroData.Move(new System.Drawing.Point(xInit,yInit),new System.Drawing.Point(x,y));
+            tablero.TableroData.Move(new System.Drawing.Point(0, 1), new System.Drawing.Point(0, 3));
+            //tablero.TableroData.CellsSelected2.AddRange(tablero.TableroData.GetLegalMoves(tablero.TableroData.Piezas[x,y]).Select(m => m.To));
+            tablero.TableroData.CellsSelected2.AddRange(tablero.TableroData.GetLegalMoves(true).Select(m => m.To));
+            tablero.TableroData.CellsSelected1.AddRange(tablero.TableroData.GetLegalMoves(false).Select(m => m.To));
+
             tablero.DoubleSelection = true;
+            tablero.RenderColor1 = true;
             tablero.Refresh();
 
         }

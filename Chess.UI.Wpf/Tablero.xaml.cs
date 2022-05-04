@@ -1,4 +1,5 @@
-﻿using Gabriel.Cat.S.Extension;
+﻿using Chess.UI.Core;
+using Gabriel.Cat.S.Extension;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,19 +28,22 @@ namespace Chess.UI.Wpf
             InitializeComponent();
             TableroData=new TableroData();
             TableroData.Start();
+            RenderColor1 = true;
             Refresh();
         }
         public TableroData TableroData { get; set; }
         public bool DoubleSelection { get; set; }
         
+        public bool RenderColor1 { get; set; }
         public void Refresh()
         {
-            img.SetImage(TableroData.Render());
+            img.SetImage(TableroData.Render(RenderColor1));
         }
 
         private void img_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y);
+            System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y,RenderColor1);
+            Console.WriteLine(location);
             if (DoubleSelection || !TableroData.CellsSelected2.Any(l => l.Equals(location)))
             {
                 if (TableroData.CellsSelected1.Any(l => l.Equals(location)))
@@ -60,7 +64,7 @@ namespace Chess.UI.Wpf
 
         private void img_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y);
+            System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y,RenderColor1);
             if (DoubleSelection || !TableroData.CellsSelected1.Any(l => l.Equals(location)))
             {
                 if (TableroData.CellsSelected2.Any(l => l.Equals(location)))
