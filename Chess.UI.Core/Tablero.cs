@@ -302,7 +302,7 @@ namespace Chess.UI.Core
             return pos;
         }
 
-        public IEnumerable<Move> GetLegalMoves(bool fromColor1 = true)
+        public IEnumerable<Move> GetLegalMoves(bool fromColor1 = true, Tipo? excluded = default)
         {
             bool isColor1;
             Pieza? pieza;
@@ -311,7 +311,7 @@ namespace Chess.UI.Core
                 for (int x = 0; x < LADO; x++)
                 {
                     pieza = Piezas[x, y];
-                    if (!Equals(pieza, default))
+                    if (!Equals(pieza, default) && (Equals(excluded, default) || !pieza.Tipo.Equals(excluded)))
                     {
                         isColor1 = Equals(pieza.Color, ColorPieza1);
 
@@ -340,7 +340,7 @@ namespace Chess.UI.Core
             Color colorContrincante;
             Point? locationOtherKing = default;
             Point? location = GetLocation(pieza);
-
+            bool isColor1;
             if (!Equals(location, default))
             {
                 colorContrincante = pieza.Color.Equals(ColorPieza1) ? ColorPieza2 : ColorPieza1;
@@ -374,7 +374,7 @@ namespace Chess.UI.Core
                                 //matar el paso
                                 if (!Equals(LastMove, default) && Math.Abs(location.Value.X - LastMove.To.X) == 1 && Piezas[LastMove.To.X, LastMove.To.Y].Color.Equals(ColorPieza2) && Piezas[LastMove.To.X, LastMove.To.Y].Tipo.Equals(Tipo.Peon) && Math.Abs(LastMove.From.Y - LastMove.To.Y) == 2)
                                 {
-                                    yield return new Move(location.Value, new Point(LastMove.To.X, location.Value.Y -1));
+                                    yield return new Move(location.Value, new Point(LastMove.To.X, location.Value.Y - 1));
                                 }
                             }
                             else
@@ -501,10 +501,99 @@ namespace Chess.UI.Core
                         {
                             yield return new Move(location.Value, new Point(location.Value.X - 1, location.Value.Y - 1));
                         }
+                        //si se puede enrocar
+                        isColor1 = colorContrincante.Equals(ColorPieza2);
+                        if (CanToCastle(isColor1, true))
+                        {
+                            yield return new Move(new Point(4, isColor1 ? 0 : LAST), new Point(2, isColor1 ? 0 : LAST));
+                            yield return new Move(new Point(0, isColor1 ? 0 : LAST), new Point(3, isColor1 ? 0 : LAST));
+                        }
+                        if (CanToCastle(isColor1, false))
+                        {
+                            yield return new Move(new Point(4, isColor1 ? 0 : LAST), new Point(6, isColor1 ? 0 : LAST));
+                            yield return new Move(new Point(LAST, isColor1 ? 0 : LAST), new Point(5, isColor1 ? 0 : LAST));
+                        }
                         break;
                 }
             }
 
+        }
+        public bool MoveToCastle(bool isColor1, bool withTower1)
+        {
+            bool canToCastle = CanToCastle(isColor1, withTower1);
+            if (canToCastle)
+            {
+                if (withTower1)
+                {
+                    Move(new Point(4, isColor1 ? 0 : LAST), new Point(2, isColor1 ? 0 : LAST));
+                    Move(new Point(0, isColor1 ? 0 : LAST), new Point(3, isColor1 ? 0 : LAST));
+
+                }
+                else
+                {
+                    Move(new Point(4, isColor1 ? 0 : LAST), new Point(6, isColor1 ? 0 : LAST));
+                    Move(new Point(LAST, isColor1 ? 0 : LAST), new Point(5, isColor1 ? 0 : LAST));
+
+                }
+            }
+            return canToCastle;
+        }
+        public bool CanToCastle(bool isColor1, bool withTower1)
+        {
+            bool canToCastle = isColor1 ? !ReyColor1Movido : !ReyColor2Movido;
+            if (canToCastle)
+            {
+                if (isColor1)
+                {
+                    canToCastle = !IsAttacked(new Point(4, 0), false, Tipo.Rey);
+                    if (canToCastle)
+                    {
+                        if (withTower1)
+                        {
+                            if (!Torre1Color1Movida)
+                            {
+                                canToCastle = Equals(Piezas[2, 0], default) && Equals(Piezas[3, 0], default) && !IsAttacked(new Point(2, 0), false, Tipo.Rey);
+
+                            }
+                        }
+                        else
+                        {
+
+                            if (!Torre2Color1Movida)
+                            {
+                                canToCastle = Equals(Piezas[5, 0], default) && Equals(Piezas[6, 0], default) && !IsAttacked(new Point(6, 0), false, Tipo.Rey);
+
+                            }
+
+                        }
+                    }
+                }
+                else
+                {
+                    canToCastle = !IsAttacked(new Point(4, LAST), true, Tipo.Rey);
+                    if (canToCastle)
+                    {
+                        if (withTower1)
+                        {
+                            if (!Torre1Color2Movida)
+                            {
+                                canToCastle = Equals(Piezas[2, LAST], default) && Equals(Piezas[3, LAST], default) && !IsAttacked(new Point(2, LAST), true, Tipo.Rey);
+
+
+                            }
+                        }
+                        else
+                        {
+                            if (!Torre2Color2Movida)
+                            {
+                                canToCastle = Equals(Piezas[5, LAST], default) && Equals(Piezas[6, LAST], default) && !IsAttacked(new Point(6, LAST), true, Tipo.Rey);
+                            }
+                        }
+                    }
+
+                }
+            }
+            return canToCastle;
         }
         private IEnumerable<Move> GetDiagonalMoves(Point posicion, bool isColor1)
         {
@@ -648,8 +737,38 @@ namespace Chess.UI.Core
         }
         public bool IsProtected(Point? posicionProtegida, Color colorOther)
         {
-            return false;//to do
+            return IsProtected(posicionProtegida, ColorPieza1.Equals(colorOther));
         }
+        public bool IsAttacked(Point? posicionProtegida, Color colorOther)
+        {
+            return IsAttacked(posicionProtegida, ColorPieza1.Equals(colorOther));
+        }
+        public IEnumerable<Move> GetProtectectors(Point? posicionProtegida, Color colorOther)
+        {
+            return GetProtectectors(posicionProtegida, ColorPieza1.Equals(colorOther));
+        }
+        public IEnumerable<Move> GetAttackers(Point? posicionProtegida, Color colorOther)
+        {
+            return GetAttackers(posicionProtegida, ColorPieza1.Equals(colorOther));
+        }
+
+        public bool IsProtected(Point? posicionProtegida, bool otherIsColor1)
+        {
+            return GetProtectectors(posicionProtegida, otherIsColor1).Any();
+        }
+        public bool IsAttacked(Point? posicionProtegida, bool otherIsColor1, Tipo? excluded = default)
+        {
+            return GetAttackers(posicionProtegida, otherIsColor1, excluded).Any();
+        }
+        public IEnumerable<Move> GetProtectectors(Point? posicionProtegida, bool otherIsColor1)
+        {
+            return GetLegalMoves(!otherIsColor1).Where(m => m.To.Equals(posicionProtegida));
+        }
+        public IEnumerable<Move> GetAttackers(Point? posicionProtegida, bool otherIsColor1, Tipo? excluded = default)
+        {
+            return GetLegalMoves(otherIsColor1, excluded).Where(m => m.To.Equals(posicionProtegida));
+        }
+
         public Point? GetLocation(Pieza? piezaTablero)
         {
             Point? location = default;
@@ -669,7 +788,7 @@ namespace Chess.UI.Core
 
     }
 
-    public class Move:IComparable,IComparable<Move>
+    public class Move : IComparable, IComparable<Move>
     {
         public Move(Point locationInit, Point locationEnd)
         {
@@ -682,7 +801,7 @@ namespace Chess.UI.Core
 
         public override bool Equals(object obj)
         {
-          return CompareTo(obj as Move)==0;
+            return CompareTo(obj as Move) == 0;
         }
         public override int GetHashCode()
         {
@@ -705,9 +824,9 @@ namespace Chess.UI.Core
         int CompareTo(Move? other)
         {
             int compareTo = Equals(other, default) ? -1 : 0;
-            if(compareTo == 0)
+            if (compareTo == 0)
             {
-                compareTo=From.X.CompareTo(other.From.X);
+                compareTo = From.X.CompareTo(other.From.X);
                 if (compareTo == 0)
                 {
                     compareTo = From.Y.CompareTo(other.From.Y);
