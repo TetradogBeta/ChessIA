@@ -24,24 +24,31 @@ namespace Chess.UI.Wpf
     {
         public MainWindow()
         {
-            int x = 3, y = 4;
+       
    
             InitializeComponent();
 
-            //tablero.TableroData.Move(new System.Drawing.Point(3, 0), new System.Drawing.Point(x, y));
 
-            tablero.TableroData.Move(new System.Drawing.Point(1, 7), new System.Drawing.Point(5, 5));
-            tablero.TableroData.Move(new System.Drawing.Point(2, 7), new System.Drawing.Point(4, 5));
-            tablero.TableroData.Move(new System.Drawing.Point(3, 7), new System.Drawing.Point(3, 5));
+
+            //tablero.TableroData.Move(new System.Drawing.Point(1, 7), new System.Drawing.Point(5, 5));
+            //tablero.TableroData.Move(new System.Drawing.Point(2, 7), new System.Drawing.Point(4, 5));
+            //tablero.TableroData.Move(new System.Drawing.Point(3, 7), new System.Drawing.Point(3, 5));
 
             //tablero.TableroData.CellsSelected2.AddRange(tablero.TableroData.GetLegalMoves(tablero.TableroData.Piezas[x,y]).Select(m => m.To));
             //tablero.TableroData.CellsSelected2.AddRange(tablero.TableroData.GetLegalMoves(true).Select(m => m.To));
-            tablero.TableroData.CellsSelected1.AddRange(tablero.TableroData.GetLegalMoves(false).Select(m=>m.To));
+           // 
 
             //tablero.TableroData.CellsSelected2.AddRange(tablero.TableroData.GetLegalMoves(tablero.TableroData.Piezas[x,y]).Select(m => m.To));
 
             tablero.DoubleSelection = true;
             tablero.RenderColor1 = true;
+            tablero.TableroData.Start();
+
+
+            tablero.TableroData.DicCellsSelecteds[TableroData.ColorDefaultSelected2].AddRange(tablero.TableroData.GetLegalMoves(false).Select(m => m.To));
+            tablero.TableroData.DicCellsSelecteds[TableroData.ColorDefaultSelected1].AddRange(tablero.TableroData.GetLegalMoves(true).Select(m => m.To));
+
+
             tablero.Refresh();
 
         }

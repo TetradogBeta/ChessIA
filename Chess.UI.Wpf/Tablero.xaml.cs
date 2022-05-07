@@ -22,18 +22,49 @@ namespace Chess.UI.Wpf
     /// </summary>
     public partial class Tablero : UserControl
     {
-        public event EventHandler Clicked;
-        public Tablero()
+        public event EventHandler? Clicked;
+        public Tablero() : this(true) { }
+        public Tablero(bool renderColor1,bool init=false, System.Drawing.Color? colorLeftClick=default, System.Drawing.Color? colorRightClick=default)
         {
+            if (Equals(colorLeftClick, default))
+            {
+                colorLeftClick = System.Drawing.Color.Gold;
+            }
+            if (Equals(colorRightClick, default))
+            {
+                colorRightClick = System.Drawing.Color.Indigo;
+            }
+
             InitializeComponent();
-            TableroData=new TableroData();
-            TableroData.Start();
-            RenderColor1 = true;
+
+            ColorLeftClick = colorLeftClick.Value;
+            ColorRightClick = colorRightClick.Value;
+            RenderColor1 = renderColor1;
+            TableroData = new TableroData();
+
+            if (!TableroData.DicCellsSelecteds.ContainsKey(ColorLeftClick))
+            {
+                TableroData.DicCellsSelecteds.Add(ColorLeftClick, new List<System.Drawing.Point>());
+            }
+            if (!TableroData.DicCellsSelecteds.ContainsKey(ColorRightClick))
+            {
+                TableroData.DicCellsSelecteds.Add(ColorRightClick, new List<System.Drawing.Point>());
+            }
+
+
+            if (init)
+            {
+                TableroData.Start();
+           
+            }
+
             Refresh();
         }
         public TableroData TableroData { get; set; }
         public bool DoubleSelection { get; set; }
-        
+
+        public System.Drawing.Color ColorLeftClick { get; private set; }
+        public System.Drawing.Color ColorRightClick { get; private set; }
         public bool RenderColor1 { get; set; }
         public void Refresh()
         {
@@ -43,17 +74,17 @@ namespace Chess.UI.Wpf
         private void img_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y,RenderColor1);
-            Console.WriteLine(location);
-            if (DoubleSelection || !TableroData.CellsSelected2.Any(l => l.Equals(location)))
+
+            if (DoubleSelection || !TableroData.DicCellsSelecteds[ColorLeftClick].Any(l => l.Equals(location)))
             {
-                if (TableroData.CellsSelected1.Any(l => l.Equals(location)))
+                if (TableroData.DicCellsSelecteds[ColorLeftClick].Any(l => l.Equals(location)))
                 {
 
-                    TableroData.CellsSelected1.Remove(location);
+                    TableroData.DicCellsSelecteds[ColorLeftClick].Remove(location);
                 }
                 else
                 {
-                    TableroData.CellsSelected1.Add(location);
+                    TableroData.DicCellsSelecteds[ColorLeftClick].Add(location);
                 }
                 Refresh();
 
@@ -65,16 +96,16 @@ namespace Chess.UI.Wpf
         private void img_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             System.Drawing.Point location = TableroData.TraslatePointImageToLocation(e.GetPosition(e.MouseDevice.Target).X, e.GetPosition(e.MouseDevice.Target).Y,RenderColor1);
-            if (DoubleSelection || !TableroData.CellsSelected1.Any(l => l.Equals(location)))
+            if (DoubleSelection || !TableroData.DicCellsSelecteds[ColorRightClick].Any(l => l.Equals(location)))
             {
-                if (TableroData.CellsSelected2.Any(l => l.Equals(location)))
+                if (TableroData.DicCellsSelecteds[ColorRightClick].Any(l => l.Equals(location)))
                 {
 
-                    TableroData.CellsSelected2.Remove(location);
+                    TableroData.DicCellsSelecteds[ColorRightClick].Remove(location);
                 }
                 else
                 {
-                    TableroData.CellsSelected2.Add(location);
+                    TableroData.DicCellsSelecteds[ColorRightClick].Add(location);
                 }
                 Refresh();
            

@@ -14,27 +14,49 @@ namespace Chess.UI.Core
     {
         public const int LADO = 8;
         public const int LAST = LADO - 1;
-        public static int DefaultLadoPieza = 100;
-        public static int DefaultLadoCelda = 200;
+        public static int DefaultLadoPieza { get; set; } = 100;
+        public static int DefaultLadoCelda { get; set; } = 200;
+        public static Color ColorDefaultSelected1 { get; set; } = Color.LightGreen;
+        public static Color ColorDefaultSelected2 { get; set; } = Color.LightBlue;
 
         public event EventHandler<PiezaEventArgs>? PiezaCapturada;
-        public Pieza?[,] Piezas { get; private set; } = new Pieza?[LADO, LADO];
-        public Color ColorPieza1 { get; set; } = Color.Sienna;
-        public Color ColorPieza2 { get; set; } = Color.DarkViolet;
 
-        public Color ColorCelda1 { get; set; } = Color.LightGray;
-        public Color ColorCelda2 { get; set; } = Color.LightCoral;
+        public TableroData(Color? colorPieza1=default,Color? colorPieza2=default, Color? colorCelda1 = default, Color? colorCelda2 = default)
+        {
+            if (Equals(colorPieza1,default))
+                colorPieza1 = Color.Sienna;
+            if (Equals(colorPieza2, default))
+                colorPieza2 = Color.DarkViolet;
+            if (Equals(colorCelda1, default))
+                colorCelda1 = Color.WhiteSmoke;
+            if(Equals(colorCelda2, default))
+                colorCelda2 = Color.LightCoral;
 
-        public Color ColorCeldaSeleccionada1 { get; set; } = Color.Green;
-        public Color ColorCeldaSeleccionada2 { get; set; } = Color.Blue;
-        public Size SizePieza { get; set; } = new Size(DefaultLadoPieza, DefaultLadoPieza);
-        public Size SizeCelda { get; set; } = new Size(DefaultLadoCelda, DefaultLadoCelda);
+            ColorPieza1 = colorPieza1.Value;
+            ColorPieza2 = colorPieza2.Value;
+            ColorCelda1 = colorCelda1.Value;
+            ColorCelda2 = colorCelda2.Value;
 
-        public Point LocationPizaEnCelda { get; set; } = new Point((DefaultLadoCelda - DefaultLadoPieza) / 2, (DefaultLadoCelda - DefaultLadoPieza) / 2);
+            SizePieza = new Size(DefaultLadoPieza, DefaultLadoPieza);
+            SizeCelda = new Size(DefaultLadoCelda, DefaultLadoCelda);
+            LocationPizaEnCelda = new Point((DefaultLadoCelda - DefaultLadoPieza) / 2, (DefaultLadoCelda - DefaultLadoPieza) / 2);
+            Piezas = new Pieza?[LADO, LADO];
+            DicCellsSelecteds = new SortedList<Gabriel.Cat.S.Utilitats.V2.Color, List<Point>>();
+            DicCellsSelecteds.Add(ColorDefaultSelected1, new List<Point>());
+            DicCellsSelecteds.Add(ColorDefaultSelected2, new List<Point>());
+        }
+        public Pieza?[,] Piezas { get; private set; } 
+        public Color ColorPieza1 { get; set; }
+        public Color ColorPieza2 { get; set; }
 
-        public List<Point> CellsSelected1 { get; private set; } = new List<Point>();
+        public Color ColorCelda1 { get; set; }
+        public Color ColorCelda2 { get; set; }
+        public Size SizePieza { get; set; } 
+        public Size SizeCelda { get; set; }
 
-        public List<Point> CellsSelected2 { get; private set; } = new List<Point>();
+        public Point LocationPizaEnCelda { get; set; } 
+
+        public SortedList<Gabriel.Cat.S.Utilitats.V2.Color,List<Point>> DicCellsSelecteds { get; set; }
 
         public bool ReyColor1Movido { get; set; }
         public bool ReyColor2Movido { get; set; }
@@ -43,6 +65,14 @@ namespace Chess.UI.Core
         public bool Torre1Color2Movida { get; set; }
         public bool Torre2Color2Movida { get; set; }
         public Move? LastMove { get; private set; }
+        public void AddOrReplace(Point location, Tipo tipo, bool isColor1) {
+            AddOrReplace(location.X,location.Y,tipo,isColor1);
+        }
+
+        public void AddOrReplace(int x,int y,Tipo tipo,bool isColor1)
+        {
+            Piezas[x, y] = new Pieza(tipo, isColor1 ? ColorPieza1 : ColorPieza2);
+        }
         public void Start() => Reset();
         public void Reset()
         {
@@ -163,7 +193,8 @@ namespace Chess.UI.Core
             Bitmap result;
             Pieza? pieza;
             Bitmap cell;
-            Bitmap cellSelected1, cellSelected2;
+            Bitmap cellSelected;
+            Point posCellSelected;
             Bitmap cell1 = GetCell(ColorCelda1);
             Bitmap cell2 = GetCell(ColorCelda2);
             Collage collage = new Collage();
@@ -241,41 +272,31 @@ namespace Chess.UI.Core
                         collage.Add(pieza.Render(SizePieza), x * SizeCelda.Width + LocationPizaEnCelda.X, yAux * SizeCelda.Height + LocationPizaEnCelda.Y, CAPAPIEZA);
                     }
                 }
-            if (CellsSelected1.Count > 0)
+
+
+            foreach(var lstSelected in DicCellsSelecteds)
             {
-                cellSelected1 = GetCell(ColorCeldaSeleccionada1, (byte)byte.MaxValue / 3);
-                foreach (Point posCellSelected in CellsSelected1)
+                if (lstSelected.Value.Count > 0)
                 {
-                    if (fromLado1)
-                    {
-                        collage.Add(cellSelected1, posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPASELECTED);
-                    }
-                    else
-                    {
-                        collage.Add(cellSelected1, Invertir(posCellSelected.X) * SizeCelda.Width, (LADO - 1 - Invertir(posCellSelected.Y)) * SizeCelda.Height, CAPASELECTED);
-                    }
+                    cellSelected = GetCell(lstSelected.Key, (byte)byte.MaxValue / 3);
 
+                    for (int i = 0; i < lstSelected.Value.Count; i++)
+                    {
+                        posCellSelected = lstSelected.Value[i];
+                        if (fromLado1)
+                        {
 
+                            collage.Add(cellSelected, posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPASELECTED);
+                        }
+                        else
+                        {
+                            collage.Add(cellSelected, Invertir(posCellSelected.X) * SizeCelda.Width, (LADO - 1 - Invertir(posCellSelected.Y)) * SizeCelda.Height, CAPASELECTED);
+                        }
+
+                    }
                 }
             }
-            if (CellsSelected2.Count > 0)
-            {
-                cellSelected2 = GetCell(ColorCeldaSeleccionada2, (byte)byte.MaxValue / 3);
-
-                foreach (Point posCellSelected in CellsSelected2)
-                {
-                    if (fromLado1)
-                    {
-
-                        collage.Add(cellSelected2, posCellSelected.X * SizeCelda.Width, (LADO - 1 - posCellSelected.Y) * SizeCelda.Height, CAPASELECTED);
-                    }
-                    else
-                    {
-                        collage.Add(cellSelected2, Invertir(posCellSelected.X) * SizeCelda.Width, (LADO - 1 - Invertir(posCellSelected.Y)) * SizeCelda.Height, CAPASELECTED);
-                    }
-
-                }
-            }
+        
 
             result = collage.CrearCollage();
 
@@ -531,8 +552,8 @@ namespace Chess.UI.Core
                 }
                 else
                 {
-                    Move(new Point(4, isColor1 ? 0 : LAST), new Point(6, isColor1 ? 0 : LAST));
-                    Move(new Point(LAST, isColor1 ? 0 : LAST), new Point(5, isColor1 ? 0 : LAST));
+                    Move(new Point(4,    isColor1 ? 0 : LAST),   new Point(6, isColor1 ? 0 : LAST));
+                    Move(new Point(LAST, isColor1 ? 0 : LAST),   new Point(5, isColor1 ? 0 : LAST));
 
                 }
             }
