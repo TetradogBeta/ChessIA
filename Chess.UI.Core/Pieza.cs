@@ -16,12 +16,15 @@ namespace Chess.UI.Core
         public static int DefaultHeight = 30;
         public static int DefaultWidth = 30;
         public static Color DefaultBrush = Color.Blue;
-
+        private Tipo tipo;
+        private Color color;
+        private Size? lastSize = default;
+        private Bitmap? lastRender = default;
         public Pieza(Tipo tipo, Color color = default)
         {
             byte[] data;
 
-          
+
             Color = color;
             Tipo = tipo;
 
@@ -45,16 +48,16 @@ namespace Chess.UI.Core
                 case Tipo.Rey:
                     data = Resource1.rey;
                     break;
-                default:throw new ArgumentOutOfRangeException(nameof(tipo));
+                default: throw new ArgumentOutOfRangeException(nameof(tipo));
             }
-        
-            ImageSvg = System.Text.ASCIIEncoding.UTF8.GetString(data); 
+
+            ImageSvg = Encoding.UTF8.GetString(data);
 
         }
-        public Tipo Tipo { get; set; }
-        public Color Color { get; set; }
+        public Tipo Tipo { get => tipo; set { tipo = value; lastSize = default; } }
+        public Color Color { get => color; set { color = value; lastSize = default; }}
         public string ImageSvg { get; private set; }
-       
+
         public Bitmap Render(Size size = default)
         {
             string svgPieza;
@@ -62,10 +65,16 @@ namespace Chess.UI.Core
             {
                 size = new Size(DefaultWidth, DefaultHeight);
             }
+            if (!lastSize.HasValue || !Equals(size, lastSize.Value))
+            {
+                lastSize = size;
+                svgPieza = ImageSvg.Replace("fill=\"#000000\"", $"fill=\"#{Color.R.ToString("X").PadLeft(2, '0')}{Color.G.ToString("X").PadLeft(2, '0')}{Color.B.ToString("X").PadLeft(2, '0')}\"");
 
-            svgPieza = ImageSvg.Replace("fill=\"#000000\"", $"fill=\"#{Color.R.ToString("X").PadLeft(2, '0')}{Color.G.ToString("X").PadLeft(2,'0')}{Color.B.ToString("X").PadLeft(2, '0')}\"");
+                lastRender= Svg.SvgDocument.FromSvg<Svg.SvgDocument>(svgPieza).Draw(size.Width, size.Height);
+            }
+            return lastRender;
 
-            return Svg.SvgDocument.FromSvg<Svg.SvgDocument>(svgPieza).Draw(size.Width,size.Height);
+           
         }
         public override string ToString()
         {

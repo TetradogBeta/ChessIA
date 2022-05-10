@@ -41,11 +41,12 @@ namespace Chess.UI.Wpf
 
             tablero.DoubleSelection = true;
             tablero.RenderColor1 = true;
-            // tablero.TableroData.Start();
-
-            tablero.TableroData.AddOrReplace(3, 1, Tipo.Rey, true);
-            tablero.TableroData.AddOrReplace(3, 3, Tipo.Reina, true);
-            tablero.TableroData.AddOrReplace(3, 4, Tipo.Rey, false);
+            tablero.TableroData.AddOrReplace(4, 0, Tipo.Rey, true);
+            tablero.TableroData.AddOrReplace(4, 1, Tipo.Peon, false);
+            tablero.TableroData.AddOrReplace(4, 3, Tipo.Reina, true);
+            tablero.TableroData.AddOrReplace(4, 4, Tipo.Rey, false);
+            tablero.TableroData.ReyColor1Movido = true;
+            tablero.TableroData.ReyColor2Movido = true;
             //  tablero.TableroData.DicCellsSelecteds[TableroData.ColorDefaultSelected2].AddRange(tablero.TableroData.GetLegalMoves(false).Select(m => m.To));
 
 
