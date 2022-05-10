@@ -311,7 +311,7 @@ namespace Chess.UI.Core
                     if (!Equals(Piezas[x, y], default) && Piezas[x, y].Tipo.Equals(Tipo.Rey))
                         reyes.Add(new Point(x, y));
                 }
-            return Math.Abs(reyes[0].X - reyes[1].X) == 1 || (reyes[0].X == reyes[1].X && Math.Abs(reyes[0].Y - reyes[1].Y) == 1);
+            return (Math.Abs(reyes[0].X - reyes[1].X) == 2  && reyes[0].Y == reyes[1].Y) || (reyes[0].X == reyes[1].X && Math.Abs(reyes[0].Y - reyes[1].Y) == 2);
         }
         public Point TraslatePointImageToLocation(double pointImageX, double pointImageY, bool imgFromColor1 = true)
         {
@@ -340,19 +340,23 @@ namespace Chess.UI.Core
                         {
                             if (fromColor1)
                             {
-                                foreach (Move move in GetLegalMoves(pieza))
+                                foreach (Move move in GetLegalMoves(pieza,excluded))
                                     yield return move;
                             }
                         }
                         else if (!fromColor1)
                         {
-                            foreach (Move move in GetLegalMoves(pieza))
+                            foreach (Move move in GetLegalMoves(pieza,excluded))
                                 yield return move;
                         }
                     }
                 }
         }
-        public IEnumerable<Move> GetLegalMoves(Pieza? pieza)
+        public IEnumerable<Move> GetLegalMoves(int x,int y, Tipo? excluded = default)
+        {
+            return GetLegalMoves(Piezas[x, y], excluded);
+        }
+        public IEnumerable<Move> GetLegalMoves(Pieza? pieza,Tipo? excluded=default)
         {
             const int FILAPEONESINIT1 = 1, FILAPEONESINIT2 = 6;
             const int CABALLO1 = 1, CABALLO3 = 2;
@@ -429,7 +433,7 @@ namespace Chess.UI.Core
                         }
                         break;
                     case Tipo.Alfil:
-                        foreach (Move move in GetDiagonalMoves(location.Value, pieza.Color.Equals(ColorPieza1)))
+                        foreach (Move move in GetDiagonalMoves(location.Value, pieza.Color.Equals(ColorPieza1),excluded))
                             yield return move;
                         break;
                     case Tipo.Caballo:
@@ -470,66 +474,125 @@ namespace Chess.UI.Core
 
                         break;
                     case Tipo.Torre:
-                        foreach (Move move in GetCrossMoves(location.Value, pieza.Color.Equals(ColorPieza1)))
+                        foreach (Move move in GetCrossMoves(location.Value, pieza.Color.Equals(ColorPieza1),excluded))
                             yield return move;
                         break;
                     case Tipo.Reina:
-                        foreach (Move move in GetDiagonalMoves(location.Value, pieza.Color.Equals(ColorPieza1)))
+                        foreach (Move move in GetDiagonalMoves(location.Value, pieza.Color.Equals(ColorPieza1),excluded))
                             yield return move;
-                        foreach (Move move in GetCrossMoves(location.Value, pieza.Color.Equals(ColorPieza1)))
+                        foreach (Move move in GetCrossMoves(location.Value, pieza.Color.Equals(ColorPieza1),excluded))
                             yield return move;
                         break;
                     case Tipo.Rey:
                         reyesCaraACara = EstanLosReyesCaraACara();
-
+                        //los reyes cara a cara hay problemas
                         if (reyesCaraACara)
                         {
                             locationOtherKing = GetKing(colorContrincante);
                         }
-                        if (location.Value.Y < LAST && (Equals(Piezas[location.Value.X, location.Value.Y + 1], default) || Piezas[location.Value.X, location.Value.Y + 1].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X, location.Value.Y - 1), colorContrincante) && (!reyesCaraACara || location.Value.X != locationOtherKing.Value.X || locationOtherKing.Value.Y < location.Value.Y)))
+                        if (location.Value.Y < LAST && !IsProtected(new Point(location.Value.X, location.Value.Y + 1), colorContrincante, Tipo.Rey))
                         {
-                            yield return new Move(location.Value, new Point(location.Value.X, location.Value.Y + 1));
-                        }
-                        if (location.Value.Y > 0 && (Equals(Piezas[location.Value.X, location.Value.Y - 1], default) || Piezas[location.Value.X, location.Value.Y - 1].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X, location.Value.Y - 1), colorContrincante) && (!reyesCaraACara || location.Value.X != locationOtherKing.Value.X || locationOtherKing.Value.Y > location.Value.Y)))
-                        {
-                            yield return new Move(location.Value, new Point(location.Value.X, location.Value.Y - 1));
-                        }
-
-                        if (location.Value.X < LAST && (Equals(Piezas[location.Value.X + 1, location.Value.Y], default) || Piezas[location.Value.X + 1, location.Value.Y].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X + 1, location.Value.Y), colorContrincante) && (!reyesCaraACara || location.Value.Y != locationOtherKing.Value.Y || locationOtherKing.Value.X < location.Value.X)))
-                        {
-                            yield return new Move(location.Value, new Point(location.Value.X + 1, location.Value.Y));
-                        }
-                        if (location.Value.X > 0 && (Equals(Piezas[location.Value.X - 1, location.Value.Y], default) || Piezas[location.Value.X - 1, location.Value.Y].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X - 1, location.Value.Y), colorContrincante) && (!reyesCaraACara || location.Value.Y != locationOtherKing.Value.Y || locationOtherKing.Value.X > location.Value.X)))
-                        {
-                            yield return new Move(location.Value, new Point(location.Value.X - 1, location.Value.Y));
-
+                            if ((Equals(Piezas[location.Value.X, location.Value.Y + 1], default) || Piezas[location.Value.X, location.Value.Y + 1].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.X != locationOtherKing.Value.X || location.Value.Y > locationOtherKing.Value.Y)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X, location.Value.Y + 1));
+                                }
+                                
+                            }
                         }
 
-                        if (location.Value.X < LAST && location.Value.Y < LAST && (Equals(Piezas[location.Value.X + 1, location.Value.Y + 1], default) || Piezas[location.Value.X + 1, location.Value.Y + 1].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X + 1, location.Value.Y + 1), colorContrincante) && (!reyesCaraACara || location.Value.X < locationOtherKing.Value.X || locationOtherKing.Value.Y < location.Value.Y)))
+                        if (location.Value.Y > 0 && !IsProtected(new Point(location.Value.X, location.Value.Y - 1), colorContrincante, Tipo.Rey))
                         {
-                            yield return new Move(location.Value, new Point(location.Value.X + 1, location.Value.Y + 1));
+                            if ((Equals(Piezas[location.Value.X, location.Value.Y - 1], default) || Piezas[location.Value.X, location.Value.Y - 1].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.X != locationOtherKing.Value.X || location.Value.Y < locationOtherKing.Value.Y)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X, location.Value.Y - 1));
+                                }
+                            }
                         }
-                        if (location.Value.X < LAST && location.Value.Y > 0 && (Equals(Piezas[location.Value.X + 1, location.Value.Y - 1], default) || Piezas[location.Value.X + 1, location.Value.Y - 1].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X + 1, location.Value.Y - 1), colorContrincante) && (!reyesCaraACara || location.Value.X < locationOtherKing.Value.X || locationOtherKing.Value.Y > location.Value.Y)))
-                        {
-                            yield return new Move(location.Value, new Point(location.Value.X + 1, location.Value.Y - 1));
 
-                        }
-                        if (location.Value.X > 0 && location.Value.Y < LAST && (Equals(Piezas[location.Value.X - 1, location.Value.Y + 1], default) || Piezas[location.Value.X - 1, location.Value.Y + 1].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X - 1, location.Value.Y + 1), colorContrincante) && (!reyesCaraACara || location.Value.X > locationOtherKing.Value.X || locationOtherKing.Value.Y < location.Value.Y)))
+                        if (location.Value.X < LAST && !IsProtected(new Point(location.Value.X + 1, location.Value.Y), colorContrincante, Tipo.Rey))
                         {
-                            yield return new Move(location.Value, new Point(location.Value.X - 1, location.Value.Y + 1));
+                            if ((Equals(Piezas[location.Value.X + 1, location.Value.Y], default) || Piezas[location.Value.X + 1, location.Value.Y].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.Y != locationOtherKing.Value.Y || location.Value.X > locationOtherKing.Value.X)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X + 1, location.Value.Y));
+                                }
+                            }
                         }
-                        if (location.Value.X > 0 && location.Value.Y > 0 && (Equals(Piezas[location.Value.X - 1, location.Value.Y - 1], default) || Piezas[location.Value.X - 1, location.Value.Y - 1].Color.Equals(colorContrincante) && !IsProtected(new Point(location.Value.X - 1, location.Value.Y - 1), colorContrincante) && (!reyesCaraACara || location.Value.X > locationOtherKing.Value.X || locationOtherKing.Value.Y > location.Value.Y)))
+
+
+                        if (location.Value.X > 0 && !IsProtected(new Point(location.Value.X - 1, location.Value.Y), colorContrincante, Tipo.Rey))
                         {
-                            yield return new Move(location.Value, new Point(location.Value.X - 1, location.Value.Y - 1));
+                            if ((Equals(Piezas[location.Value.X - 1, location.Value.Y], default) || Piezas[location.Value.X - 1, location.Value.Y].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.Y != locationOtherKing.Value.Y || location.Value.X < locationOtherKing.Value.X)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X - 1, location.Value.Y));
+                                }
+                            }
                         }
+
+                        if (location.Value.X < LAST && location.Value.Y < LAST && !IsProtected(new Point(location.Value.X + 1, location.Value.Y + 1), colorContrincante, Tipo.Rey))
+                        {
+                            if ((Equals(Piezas[location.Value.X + 1, location.Value.Y + 1], default) || Piezas[location.Value.X + 1, location.Value.Y + 1].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.Y > locationOtherKing.Value.Y || location.Value.Y == locationOtherKing.Value.Y && location.Value.X > locationOtherKing.Value.X)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X + 1, location.Value.Y + 1));
+                                }
+                            }
+                        }
+
+                        if (location.Value.X > 0 && location.Value.Y > 0 && !IsProtected(new Point(location.Value.X - 1, location.Value.Y - 1), colorContrincante, Tipo.Rey))
+                        {
+                            if ((Equals(Piezas[location.Value.X - 1, location.Value.Y - 1], default) || Piezas[location.Value.X - 1, location.Value.Y - 1].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.Y < locationOtherKing.Value.Y || location.Value.Y == locationOtherKing.Value.Y && location.Value.X < locationOtherKing.Value.X)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X - 1, location.Value.Y - 1));
+                                }
+                            }
+                        }
+
+
+
+                        if (location.Value.X < LAST && location.Value.Y > 0 && !IsProtected(new Point(location.Value.X + 1, location.Value.Y - 1), colorContrincante, Tipo.Rey))
+                        {
+                            if ((Equals(Piezas[location.Value.X + 1, location.Value.Y - 1], default) || Piezas[location.Value.X + 1, location.Value.Y - 1].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.Y < locationOtherKing.Value.Y || location.Value.Y == locationOtherKing.Value.Y && location.Value.X > locationOtherKing.Value.X)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X + 1, location.Value.Y - 1));
+                                }
+                            }
+                        }
+
+
+
+                        if (location.Value.X > 0 && location.Value.Y < LAST && !IsProtected(new Point(location.Value.X - 1, location.Value.Y + 1), colorContrincante, Tipo.Rey))
+                        {
+                            if ((Equals(Piezas[location.Value.X - 1, location.Value.Y + 1], default) || Piezas[location.Value.X - 1, location.Value.Y + 1].Color.Equals(colorContrincante)))
+                            {
+                                if (!reyesCaraACara || location.Value.Y > locationOtherKing.Value.Y || location.Value.Y == locationOtherKing.Value.Y && location.Value.X < locationOtherKing.Value.X)
+                                {
+                                    yield return new Move(location.Value, new Point(location.Value.X - 1, location.Value.Y + 1));
+                                }
+                            }
+                        }
+
+              
                         //si se puede enrocar
                         isColor1 = colorContrincante.Equals(ColorPieza2);
-                        if (CanToCastle(isColor1, true))
+                        if (CanToCastle(isColor1, true) && location.Value.X == 4)
                         {
                             yield return new Move(new Point(4, isColor1 ? 0 : LAST), new Point(2, isColor1 ? 0 : LAST));
                             yield return new Move(new Point(0, isColor1 ? 0 : LAST), new Point(3, isColor1 ? 0 : LAST));
                         }
-                        if (CanToCastle(isColor1, false))
+                        if (CanToCastle(isColor1, false) && location.Value.X == 4)
                         {
                             yield return new Move(new Point(4, isColor1 ? 0 : LAST), new Point(6, isColor1 ? 0 : LAST));
                             yield return new Move(new Point(LAST, isColor1 ? 0 : LAST), new Point(5, isColor1 ? 0 : LAST));
@@ -616,7 +679,7 @@ namespace Chess.UI.Core
             }
             return canToCastle;
         }
-        private IEnumerable<Move> GetDiagonalMoves(Point posicion, bool isColor1)
+        private IEnumerable<Move> GetDiagonalMoves(Point posicion, bool isColor1, Tipo? excluded = default)
         {
             bool canMove;
             bool isEndYieldLeftUp = false;
@@ -631,7 +694,7 @@ namespace Chess.UI.Core
                     isEndYieldLeftUp = posicion.X - increment < 0;
                     if (!isEndYieldLeftUp)
                     {
-                        isEndYieldLeftUp = !Equals(Piezas[posicion.X - increment, y], default);
+                        isEndYieldLeftUp = !Equals(Piezas[posicion.X - increment, y], default) && ( Equals(excluded, default) || !Piezas[posicion.X - increment, y].Tipo.Equals(excluded.Value));
                         canMove = !isEndYieldLeftUp || Piezas[posicion.X - increment, y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[posicion.X - increment, y].Color.Equals(ColorPieza2) && isColor1;
 
                         if (canMove)
@@ -646,7 +709,7 @@ namespace Chess.UI.Core
                     isEndYieldRightUp = posicion.X + increment > LAST;
                     if (!isEndYieldRightUp)
                     {
-                        isEndYieldRightUp = !Equals(Piezas[posicion.X + increment, y], default);
+                        isEndYieldRightUp = !Equals(Piezas[posicion.X + increment, y], default) && (Equals(excluded, default) || !Piezas[posicion.X + increment, y].Tipo.Equals(excluded.Value));
                         canMove = !isEndYieldRightUp || Piezas[posicion.X + increment, y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[posicion.X + increment, y].Color.Equals(ColorPieza2) && isColor1;
 
                         if (canMove)
@@ -666,7 +729,7 @@ namespace Chess.UI.Core
                     isEndYieldLeftDown = posicion.X - increment < 0;
                     if (!isEndYieldLeftDown)
                     {
-                        isEndYieldLeftDown = !Equals(Piezas[posicion.X - increment, y], default);
+                        isEndYieldLeftDown = !Equals(Piezas[posicion.X - increment, y], default) && (Equals(excluded, default) || !Piezas[posicion.X - increment, y].Tipo.Equals(excluded.Value));
                         canMove = !isEndYieldLeftDown || Piezas[posicion.X - increment, y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[posicion.X - increment, y].Color.Equals(ColorPieza2) && isColor1;
 
                         if (canMove)
@@ -681,7 +744,7 @@ namespace Chess.UI.Core
                     isEndYieldRightDown = posicion.X + increment > LAST;
                     if (!isEndYieldRightDown)
                     {
-                        isEndYieldRightDown = !Equals(Piezas[posicion.X + increment, y], default);
+                        isEndYieldRightDown = !Equals(Piezas[posicion.X + increment, y], default) && (Equals(excluded, default) || !Piezas[posicion.X + increment, y].Tipo.Equals(excluded.Value));
                         canMove = !isEndYieldRightDown || Piezas[posicion.X + increment, y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[posicion.X + increment, y].Color.Equals(ColorPieza2) && isColor1;
 
                         if (canMove)
@@ -693,7 +756,7 @@ namespace Chess.UI.Core
                 }
             }
         }
-        private IEnumerable<Move> GetCrossMoves(Point posicion, bool isColor1)
+        private IEnumerable<Move> GetCrossMoves(Point posicion, bool isColor1, Tipo? excluded = default)
         {
             bool canMove;
             bool isEndYieldLeft = false;
@@ -703,8 +766,8 @@ namespace Chess.UI.Core
 
             for (int x = posicion.X + 1; x < LADO && !isEndYieldRight; x++)
             {
-                isEndYieldRight = !Equals(Piezas[x, posicion.Y], default);
-                canMove = !isEndYieldRight || Piezas[x, posicion.Y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[x, posicion.Y].Color.Equals(ColorPieza2) && isColor1;
+                isEndYieldRight = !Equals(Piezas[x, posicion.Y], default) && (Equals(excluded, default) || !Piezas[x, posicion.Y].Tipo.Equals(excluded.Value));
+                canMove = !isEndYieldRight || (Piezas[x, posicion.Y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[x, posicion.Y].Color.Equals(ColorPieza2) && isColor1);
                 if (canMove)
                 {
                     yield return new Move(posicion, new Point(x, posicion.Y));
@@ -712,7 +775,7 @@ namespace Chess.UI.Core
             }
             for (int x = posicion.X - 1; x >= 0 && !isEndYieldLeft; x--)
             {
-                isEndYieldLeft = !Equals(Piezas[x, posicion.Y], default);
+                isEndYieldLeft = !Equals(Piezas[x, posicion.Y], default) && (Equals(excluded, default) || !Piezas[x, posicion.Y].Tipo.Equals(excluded.Value));
                 canMove = !isEndYieldLeft || Piezas[x, posicion.Y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[x, posicion.Y].Color.Equals(ColorPieza2) && isColor1;
                 if (canMove)
                 {
@@ -721,7 +784,7 @@ namespace Chess.UI.Core
             }
             for (int y = posicion.Y + 1; y < LADO && !isEndYieldUp; y++)
             {
-                isEndYieldUp = !Equals(Piezas[posicion.X, y], default);
+                isEndYieldUp = !Equals(Piezas[posicion.X, y], default) && (Equals(excluded, default) || !Piezas[posicion.X, y].Tipo.Equals(excluded.Value));
                 canMove = !isEndYieldUp || Piezas[posicion.X, y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[posicion.X, y].Color.Equals(ColorPieza2) && isColor1;
                 if (canMove)
                 {
@@ -730,7 +793,7 @@ namespace Chess.UI.Core
             }
             for (int y = posicion.Y - 1; y >= 0 && !isEndYieldDown; y--)
             {
-                isEndYieldDown = !Equals(Piezas[posicion.X, y], default);
+                isEndYieldDown = !Equals(Piezas[posicion.X, y], default) && (Equals(excluded, default) || !Piezas[posicion.X, y].Tipo.Equals(excluded.Value));
                 canMove = !isEndYieldDown || Piezas[posicion.X, y].Color.Equals(ColorPieza1) && !isColor1 || Piezas[posicion.X, y].Color.Equals(ColorPieza2) && isColor1;
                 if (canMove)
                 {
@@ -756,53 +819,56 @@ namespace Chess.UI.Core
                 }
             return location;
         }
-        public bool IsProtected(Point? posicionProtegida, Color colorOther)
+        public bool IsProtected(Point? posicionProtegida, Color colorOther,Tipo? tipoAOmitir=default)
         {
-            return IsProtected(posicionProtegida, ColorPieza1.Equals(colorOther));
+            return IsProtected(posicionProtegida, ColorPieza1.Equals(colorOther),tipoAOmitir);
         }
         public bool IsAttacked(Point? posicionProtegida, Color colorOther)
         {
             return IsAttacked(posicionProtegida, ColorPieza1.Equals(colorOther));
         }
-        public IEnumerable<Move> GetProtectectors(Point? posicionProtegida, Color colorOther)
+        public IEnumerable<Move> GetProtectectors(Point? posicionProtegida, Color colorOther, Tipo? tipoAOmitir = default)
         {
-            return GetProtectectors(posicionProtegida, ColorPieza1.Equals(colorOther));
+            return GetProtectectors(posicionProtegida, ColorPieza1.Equals(colorOther),tipoAOmitir);
         }
         public IEnumerable<Move> GetAttackers(Point? posicionProtegida, Color colorOther)
         {
             return GetAttackers(posicionProtegida, ColorPieza1.Equals(colorOther));
         }
 
-        public bool IsProtected(Point? posicionProtegida, bool otherIsColor1)
+        public bool IsProtected(Point? posicionProtegida, bool otherIsColor1,Tipo? tipoAOmitir=default)
         {
-            return GetProtectectors(posicionProtegida, otherIsColor1).Any();
+            return GetProtectectors(posicionProtegida, otherIsColor1,tipoAOmitir).Any();
         }
         public bool IsAttacked(Point? posicionProtegida, bool otherIsColor1, Tipo? excluded = default)
         {
             return GetAttackers(posicionProtegida, otherIsColor1, excluded).Any();
         }
-        public IEnumerable<Move> GetProtectectors(Point? posicionProtegida, bool otherIsColor1)
+        public IEnumerable<Move> GetProtectectors(Point? posicionProtegida, bool otherIsColor1, Tipo? tipoAOmitir = default)
         {
-            return GetLegalMoves(!otherIsColor1).Where(m => m.To.Equals(posicionProtegida));
+            return GetLegalMoves(otherIsColor1,tipoAOmitir).Where(m => m.To.Equals(posicionProtegida));
         }
         public IEnumerable<Move> GetAttackers(Point? posicionProtegida, bool otherIsColor1, Tipo? excluded = default)
         {
-            return GetLegalMoves(otherIsColor1, excluded).Where(m => m.To.Equals(posicionProtegida));
+            return GetLegalMoves(!otherIsColor1, excluded).Where(m => m.To.Equals(posicionProtegida));
         }
 
         public Point? GetLocation(Pieza? piezaTablero)
         {
             Point? location = default;
             bool encontrado = false;
-            for (int x = 0; x < LADO && !encontrado; x++)
-                for (int y = 0; y < LADO && !encontrado; y++)
-                {
-                    encontrado = Piezas[x, y] == piezaTablero;
-                    if (encontrado)
+            if (!Equals(piezaTablero, default))
+            {
+                for (int x = 0; x < LADO && !encontrado; x++)
+                    for (int y = 0; y < LADO && !encontrado; y++)
                     {
-                        location = new Point(x, y);
+                        encontrado = Piezas[x, y] == piezaTablero;
+                        if (encontrado)
+                        {
+                            location = new Point(x, y);
+                        }
                     }
-                }
+            }
             return location;
         }
 
