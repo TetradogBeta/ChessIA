@@ -7,17 +7,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Gabriel.Cat.S.Extension;
 using Gabriel.Cat.S.Utilitats;
+using Gabriel.Cat.S.Binaris;
 
 namespace Chess.UI.Core
 {
-    public class TableroData
+    public class TableroData:IElementoBinarioComplejo
     {
+    
         public const int LADO = 8;
         public const int LAST = LADO - 1;
         public static int DefaultLadoPieza { get; set; } = 100;
         public static int DefaultLadoCelda { get; set; } = 200;
         public static Color ColorDefaultSelected1 { get; set; } = Color.LightGreen;
         public static Color ColorDefaultSelected2 { get; set; } = Color.LightBlue;
+        public static ElementoBinario Serializador { get; private set; } = ElementoBinario.GetSerializador<TableroData>();
 
         public event EventHandler<PiezaEventArgs>? PiezaCapturada;
 
@@ -65,6 +68,9 @@ namespace Chess.UI.Core
         public bool Torre1Color2Movida { get; set; }
         public bool Torre2Color2Movida { get; set; }
         public Move? LastMove { get; private set; }
+
+        ElementoBinario IElementoBinarioComplejo.Serialitzer => Serializador;
+
         public void AddOrReplace(Point location, Tipo tipo, bool isColor1) {
             AddOrReplace(location.X,location.Y,tipo,isColor1);
         }
@@ -875,8 +881,9 @@ namespace Chess.UI.Core
 
     }
 
-    public class Move : IComparable, IComparable<Move>
+    public class Move : IComparable, IComparable<Move>,IElementoBinarioComplejo
     {
+        public static ElementoBinario Serializador { get; private set; } = ElementoBinario.GetSerializador<Move>();
         public Move(Point locationInit, Point locationEnd)
         {
             From = locationInit;
@@ -885,6 +892,8 @@ namespace Chess.UI.Core
 
         public Point From { get; set; }
         public Point To { get; set; }
+
+        ElementoBinario IElementoBinarioComplejo.Serialitzer => Serializador;
 
         public override bool Equals(object obj)
         {
