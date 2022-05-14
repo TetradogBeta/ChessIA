@@ -7,12 +7,24 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="ElegirPiezas.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="PiezaView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Tablero.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="ElegirPiezas.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="MainWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="PiezaView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Tablero.xaml">

@@ -16,6 +16,7 @@ namespace Chess.UI.Core
     
         public const int LADO = 8;
         public const int LAST = LADO - 1;
+
         public static int DefaultLadoPieza { get; set; } = 100;
         public static int DefaultLadoCelda { get; set; } = 200;
         public static Color ColorDefaultSelected1 { get; set; } = Color.LightGreen;
@@ -23,8 +24,8 @@ namespace Chess.UI.Core
         public static ElementoBinario Serializador { get; private set; } = ElementoBinario.GetSerializador<TableroData>();
 
         public event EventHandler<PiezaEventArgs>? PiezaCapturada;
-
-        public TableroData(Color? colorPieza1=default,Color? colorPieza2=default, Color? colorCelda1 = default, Color? colorCelda2 = default)
+        public TableroData():this(default,default) { }
+        public TableroData(Color? colorPieza1,Color? colorPieza2, Color? colorCelda1 = default, Color? colorCelda2 = default)
         {
             if (Equals(colorPieza1,default))
                 colorPieza1 = Color.Sienna;
@@ -317,7 +318,7 @@ namespace Chess.UI.Core
                     if (!Equals(Piezas[x, y], default) && Piezas[x, y].Tipo.Equals(Tipo.Rey))
                         reyes.Add(new Point(x, y));
                 }
-            return (Math.Abs(reyes[0].X - reyes[1].X) == 2  && reyes[0].Y == reyes[1].Y) || (reyes[0].X == reyes[1].X && Math.Abs(reyes[0].Y - reyes[1].Y) == 2);
+            return reyes.Count == 2 && (Math.Abs(reyes[0].X - reyes[1].X) == 2  && reyes[0].Y == reyes[1].Y) || (reyes[0].X == reyes[1].X && Math.Abs(reyes[0].Y - reyes[1].Y) == 2);
         }
         public Point TraslatePointImageToLocation(double pointImageX, double pointImageY, bool imgFromColor1 = true)
         {

@@ -7,9 +7,18 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
-        <Viewbox>
-        <local:Tablero x:Name="tablero" />
+        <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+ 
+        <local:Tablero x:Name="tablero" Clicked="tablero_Clicked" DisableSelection="True" />
+
+        <Viewbox  Grid.Column="1">
+            <local:ElegirPiezas x:Name="elegirPieza"/>
         </Viewbox>
+    </Grid>
 
 
 </Window>

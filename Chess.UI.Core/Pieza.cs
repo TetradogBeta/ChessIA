@@ -13,8 +13,8 @@ namespace Chess.UI.Core
     }
     public class Pieza
     {
-        public static int DefaultHeight = 30;
-        public static int DefaultWidth = 30;
+        public static int DefaultHeight = 150;
+        public static int DefaultWidth = 150;
         public static Color DefaultBrush = Color.Blue;
         private Tipo tipo;
         private Color color;
@@ -61,7 +61,8 @@ namespace Chess.UI.Core
         public Bitmap Render(Size size = default)
         {
             string svgPieza;
-            if (Equals(size, default))
+
+            if (Equals(size, default) || size.Height == 0 || size.Width == 0)
             {
                 size = new Size(DefaultWidth, DefaultHeight);
             }
